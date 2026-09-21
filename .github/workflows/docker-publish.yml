@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - main
+    tags:
+      - "v*"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -20,7 +26,15 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/rohit-tiwari-leo/skills-publish-docker-images-gh-100/stackoverflown
       - name: Build and push Docker image
-        run: |
-          docker build . --tag ghcr.io/rohit-tiwari-leo/skills-publish-docker-images-gh-100/stackoverflown:main
-          docker push ghcr.io/rohit-tiwari-leo/skills-publish-docker-images-gh-100/stackoverflown:main
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta.outputs.tags }}
